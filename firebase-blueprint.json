@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Represents an enrolled student in the class roster.",
+      "type": "object",
+      "properties": {
+        "rollNumber": {
+          "type": "string",
+          "description": "Unique roll number or student identification code.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full legal or preferred name of the student.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "gradeLevel": {
+          "type": "string",
+          "description": "Grade, class section, or homeroom group.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "gender": {
+          "type": "string",
+          "description": "Gender identification of the student.",
+          "maxLength": 32
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "Contact telephone number of student or guardian.",
+          "maxLength": 32
+        },
+        "guardianName": {
+          "type": "string",
+          "description": "Name of the parent or legal guardian.",
+          "maxLength": 128
+        },
+        "avatarBgColor": {
+          "type": "string",
+          "description": "CSS color class for the student avatar initials icon.",
+          "maxLength": 64
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the student is currently actively enrolled."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the student was first enrolled."
+        }
+      },
+      "required": ["rollNumber", "fullName", "gradeLevel", "active"]
+    },
+    "DailyAttendance": {
+      "title": "DailyAttendance",
+      "description": "Stores classroom attendance records for a specific date.",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "ISO date string YYYY-MM-DD for the attendance session.",
+          "minLength": 10,
+          "maxLength": 10
+        },
+        "records": {
+          "type": "object",
+          "description": "Map of student IDs to their attendance status and notes."
+        },
+        "takenBy": {
+          "type": "string",
+          "description": "Name of the teacher or administrator taking attendance.",
+          "maxLength": 128
+        },
+        "notes": {
+          "type": "string",
+          "description": "Daily classroom remarks, weather notes, or announcements.",
+          "maxLength": 500
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the daily record was last modified."
+        }
+      },
+      "required": ["date", "records", "updatedAt"]
+    },
+    "HealthPing": {
+      "title": "HealthPing",
+      "description": "Diagnostic health ping document for connection validation.",
+      "type": "object",
+      "properties": {
+        "ping": {
+          "type": "boolean",
+          "description": "True if ping check succeeded."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Ping check timestamp."
+        },
+        "system": {
+          "type": "string",
+          "description": "App identifier.",
+          "maxLength": 64
+        }
+      },
+      "required": ["ping", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of student records in the school class roster."
+    },
+    "/attendance/{date}": {
+      "schema": "DailyAttendance",
+      "description": "Collection of daily attendance sheets indexed by date YYYY-MM-DD."
+    },
+    "/_classtrack_health/{docId}": {
+      "schema": "HealthPing",
+      "description": "Health check document used to verify Firestore connectivity."
+    }
+  }
+}

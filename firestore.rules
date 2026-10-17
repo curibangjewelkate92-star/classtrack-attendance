@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll(['rollNumber', 'fullName', 'gradeLevel', 'active'])
+        && data.keys().hasOnly(['rollNumber', 'fullName', 'gradeLevel', 'gender', 'contactPhone', 'guardianName', 'avatarBgColor', 'active', 'createdAt'])
+        && data.rollNumber is string && data.rollNumber.size() <= 64
+        && data.fullName is string && data.fullName.size() <= 128
+        && data.gradeLevel is string && data.gradeLevel.size() <= 64
+        && (!('gender' in data) || (data.gender is string && data.gender.size() <= 32))
+        && (!('contactPhone' in data) || (data.contactPhone is string && data.contactPhone.size() <= 32))
+        && (!('guardianName' in data) || (data.guardianName is string && data.guardianName.size() <= 128))
+        && (!('avatarBgColor' in data) || (data.avatarBgColor is string && data.avatarBgColor.size() <= 64))
+        && data.active is bool;
+    }
+
+    function isValidDailyAttendance(data) {
+      return data.keys().hasAll(['date', 'records', 'updatedAt'])
+        && data.keys().hasOnly(['date', 'records', 'takenBy', 'notes', 'updatedAt'])
+        && data.date is string && data.date.size() == 10
+        && data.records is map
+        && (!('takenBy' in data) || (data.takenBy is string && data.takenBy.size() <= 128))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    // Student collection
+    match /students/{studentId} {
+      allow read: if true;
+      allow create: if isValidId(studentId) && isValidStudent(incoming());
+      allow update: if isValidId(studentId) && isValidStudent(incoming());
+      allow delete: if isValidId(studentId);
+    }
+
+    // Attendance collection
+    match /attendance/{date} {
+      allow read: if true;
+      allow create: if isValidId(date) && isValidDailyAttendance(incoming());
+      allow update: if isValidId(date) && isValidDailyAttendance(incoming());
+      allow delete: if isValidId(date);
+    }
+
+    // Diagnostic health check
+    match /_classtrack_health/{docId} {
+      allow read, write: if isValidId(docId);
+    }
+  }
+}
